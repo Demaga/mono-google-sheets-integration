@@ -138,7 +138,7 @@ function uploadAllTransactions() {
                     let entry = headers
                         .map(col => transaction.columnMap().get(col))
                     Logger.log(entry)
-                    entries.push(entry);
+                    entries.unshift(entry);
                 }
                 try {
                     sheet
