@@ -22,8 +22,8 @@ let textColumns = ["Опис", "Коментар"]
 let datetimeColumns = ["Час транзакції"]
 
 let categories = [
-  "🍽️ Кафе і ресторани", "💅 Краса і здоровʼя", "🛒 Магазини", "👕 Одяг", "💃 Відпочинок і розваги",
-  "🏠 Платежі і комісії", "🎁 Подарунки", "🚌 Проїзд", "🎗 Благодійність", "Інше"
+    "🍽️ Кафе і ресторани", "💅 Краса і здоровʼя", "🛒 Магазини", "👕 Одяг", "💃 Відпочинок і розваги",
+    "🏠 Платежі і комісії", "🎁 Подарунки", "🚌 Проїзд", "🎗 Благодійність", "Інше"
 ]
 
 let sources = ["Mono", "Готівка"]
@@ -114,11 +114,12 @@ function uploadAllTransactions() {
         .forEach(
             ([from, to]) => {
 
-                let descriptionColumn = sheet.getRange(2, headers.indexOf("Опис")+1, sheet.getLastRow(), 1).getValues()
-                let categoryColumn = sheet.getRange(2, headers.indexOf("Категорія")+1, sheet.getLastRow(), 1).getValues()
+                let descriptionColumn = sheet.getRange(2, headers.indexOf("Опис") + 1, sheet.getLastRow(), 1).getValues()
+                let categoryColumn = sheet.getRange(2, headers.indexOf("Категорія") + 1, sheet.getLastRow(), 1).getValues()
 
                 let transactions = getTransactions(from, to)
                 let transactionsCnt = transactions.length
+                let entries = [];
                 for (let step = transactionsCnt - 1; step >= 0; step--) {
                     var transaction = transactions[step]
                     // Loop through the rows from top to bottom to find the last row with the same description
@@ -137,17 +138,17 @@ function uploadAllTransactions() {
                     let entry = headers
                         .map(col => transaction.columnMap().get(col))
                     Logger.log(entry)
-
-                    try {
-                        sheet
-                            .insertRowBefore(2)
-                            .getRange(2, 1, 1, entry.length)
-                            .setValues([entry]);
-                    } catch (e) {
-                        sheet
-                            .deleteRow(2)
-                        throw e;
-                    }
+                    entries.push(entry);
+                }
+                try {
+                    sheet
+                        .insertRowsBefore(2, entries.length)
+                        .getRange(2, 1, entries.length, entries[0].length)
+                        .setValues(entries);
+                } catch (e) {
+                    sheet
+                        .deleteRows(2, entries.length)
+                    throw e;
                 }
             }
         )
@@ -274,13 +275,13 @@ function getScriptSecret(key) {
 
 class MonoTransaction {
     constructor({
-                    time,
-                    description,
-                    amount,
-                    cashbackAmount,
-                    balance,
-                    comment
-                }
+        time,
+        description,
+        amount,
+        cashbackAmount,
+        balance,
+        comment
+    }
     ) {
         // переводимо epoch seconds в timestamp, а копійки в гривні
         this.time = new Date(time * 1000);
@@ -309,13 +310,13 @@ class MonoTransaction {
 
     static fromJSON(json) {
         return new MonoTransaction({
-                time: json.time,
-                description: json.description,
-                amount: json.amount,
-                cashbackAmount: json.cashbackAmount,
-                balance: json.balance,
-                comment: json.comment,
-            }
+            time: json.time,
+            description: json.description,
+            amount: json.amount,
+            cashbackAmount: json.cashbackAmount,
+            balance: json.balance,
+            comment: json.comment,
+        }
         );
     }
 }
